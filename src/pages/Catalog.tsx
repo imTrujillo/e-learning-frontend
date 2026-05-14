@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import { useMyEngineEnrollments } from '../hooks/useMyEngineEnrollments'
 import { fetchEngineCategories, fetchEngineCourses } from '../lib/engineApi'
+import { enrollmentForCourse, resolveCoursePurchaseAction } from '../lib/engineEnrollmentUi'
 import type { EngineCategory, EngineCourse } from '../types/engine'
 
 function priceOf(c: EngineCourse): number {
@@ -13,7 +16,9 @@ function priceOf(c: EngineCourse): number {
 }
 
 export function Catalog() {
+  const { email } = useAuth()
   const { addItem, items } = useCart()
+  const { enrollments, loading: enrollLoading } = useMyEngineEnrollments(email)
   const [courses, setCourses] = useState<EngineCourse[]>([])
   const [categories, setCategories] = useState<EngineCategory[]>([])
   const [catError, setCatError] = useState('')
@@ -65,6 +70,80 @@ export function Catalog() {
   }, [courses, search])
 
   const inCart = useCallback((id: number) => items.some((i) => i.courseId === id), [items])
+
+  const purchaseBlock = (courseId: number, title: string, price: number, imageUrl?: string | null) => {
+    const en = enrollmentForCourse(enrollments, courseId)
+    const action = resolveCoursePurchaseAction(en, inCart(courseId))
+    if (enrollLoading) {
+      return <span className="duo-muted small">Comprobando inscripción…</span>
+    }
+    if (action.kind === 'active') {
+      return (
+        <div className="duo-catalog-purchase-stack">
+          <span className="duo-in-cart" style={{ color: '#047857' }}>
+            Ya tienes acceso
+          </span>
+          <Link to={`/catalog/${courseId}`} className="duo-btn duo-btn-sky duo-btn-block">
+            Ver programa
+          </Link>
+        </div>
+      )
+    }
+    if (action.kind === 'pending') {
+      return (
+        <div className="duo-catalog-purchase-stack">
+          <span className="duo-in-cart">Pago pendiente</span>
+          <Link to="/checkout" className="duo-btn duo-btn-rose duo-btn-block">
+            Completar pago
+          </Link>
+          <Link to={`/catalog/${courseId}`} className="duo-btn duo-btn-ghost duo-btn-block small">
+            Ver programa
+          </Link>
+        </div>
+      )
+    }
+    if (action.kind === 'other') {
+      return (
+        <div className="duo-catalog-purchase-stack">
+          <span className="duo-muted small">Inscripción: {action.status}</span>
+          <Link to={`/catalog/${courseId}`} className="duo-btn duo-btn-ghost duo-btn-block">
+            Ver programa
+          </Link>
+        </div>
+      )
+    }
+    if (action.kind === 'in_cart') {
+      return (
+        <div className="duo-catalog-purchase-stack">
+          <span className="duo-in-cart">En el carrito</span>
+          <Link to={`/catalog/${courseId}`} className="duo-btn duo-btn-ghost duo-btn-block small">
+            Ver programa
+          </Link>
+        </div>
+      )
+    }
+    return (
+      <div className="duo-catalog-purchase-stack">
+        <button
+          type="button"
+          className="duo-btn duo-btn-rose duo-btn-block"
+          onClick={() =>
+            addItem({
+              courseId,
+              title,
+              price,
+              imageUrl,
+            })
+          }
+        >
+          Añadir al carrito
+        </button>
+        <Link to={`/catalog/${courseId}`} className="duo-btn duo-btn-ghost duo-btn-block small">
+          Ver programa
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="duo-page duo-fade-in">
@@ -146,11 +225,10 @@ export function Catalog() {
                 <div className="duo-course-body">
                   <div className="duo-course-meta">
                     <span className="duo-chip">{course.category?.name ?? 'General'}</span>
-                    <span className="duo-rating" aria-hidden>
-                      ★ 4.8
-                    </span>
                   </div>
-                  <h2 className="duo-course-title">{course.title}</h2>
+                  <h2 className="duo-course-title">
+                    <Link to={`/catalog/${id}`}>{course.title}</Link>
+                  </h2>
                   <p className="duo-course-desc">
                     {course.description?.trim() ||
                       'Descubre este curso y avanza módulo a módulo.'}
@@ -161,24 +239,7 @@ export function Catalog() {
                     </span>
                     <span className="duo-price">{price > 0 ? `${price.toFixed(2)} €` : 'GRATIS'}</span>
                   </div>
-                  {inCart(id) ? (
-                    <span className="duo-in-cart">En el carrito</span>
-                  ) : (
-                    <button
-                      type="button"
-                      className="duo-btn duo-btn-rose duo-btn-block"
-                      onClick={() =>
-                        addItem({
-                          courseId: id,
-                          title: course.title ?? `Curso ${id}`,
-                          price,
-                          imageUrl: course.imageUrl,
-                        })
-                      }
-                    >
-                      Añadir al carrito
-                    </button>
-                  )}
+                  {purchaseBlock(id, course.title ?? `Curso ${id}`, price, course.imageUrl)}
                 </div>
               </article>
             )

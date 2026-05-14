@@ -21,6 +21,9 @@ const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default:
 const Profile = lazy(() => import('./pages/Profile').then((m) => ({ default: m.Profile })))
 const Forum = lazy(() => import('./pages/Forum').then((m) => ({ default: m.Forum })))
 const Catalog = lazy(() => import('./pages/Catalog').then((m) => ({ default: m.Catalog })))
+const CourseDetail = lazy(() =>
+  import('./pages/CourseDetail').then((m) => ({ default: m.CourseDetail })),
+)
 const Cart = lazy(() => import('./pages/Cart').then((m) => ({ default: m.Cart })))
 const Checkout = lazy(() => import('./pages/Checkout').then((m) => ({ default: m.Checkout })))
 
@@ -47,6 +50,7 @@ export default function App() {
           >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/catalog" element={<Catalog />} />
+            <Route path="/catalog/:courseId" element={<CourseDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/profile" element={<Profile />} />

@@ -6,6 +6,7 @@ import {
   activateEngineEnrollment,
   createEngineEnrollment,
   ensureEngineStudent,
+  fetchEngineEnrollmentVerify,
 } from '../lib/engineApi'
 
 function normalizeCardNumber(s: string): string {
@@ -85,12 +86,29 @@ export function Checkout() {
       }
 
       for (const line of items) {
+        const verify = await fetchEngineEnrollmentVerify(email, line.courseId)
+        if (verify.ok && verify.data === true) {
+          continue
+        }
         const created = await createEngineEnrollment(line.courseId, email)
         if (!created.ok) {
           const msg = created.message
-          if (!msg.includes('ya está inscrito')) {
-            throw new Error(msg || 'No se pudo crear la inscripción')
+          if (msg.includes('ya está inscrito')) {
+            const verify2 = await fetchEngineEnrollmentVerify(email, line.courseId)
+            if (verify2.ok && verify2.data === true) continue
+            const actRetry = await activateEngineEnrollment(email, line.courseId)
+            if (!actRetry.ok) {
+              if (
+                actRetry.message.includes('no está pendiente de pago') ||
+                actRetry.message.includes('No se puede activar')
+              ) {
+                continue
+              }
+              throw new Error(actRetry.message || 'No se pudo activar la inscripción')
+            }
+            continue
           }
+          throw new Error(msg || 'No se pudo crear la inscripción')
         }
         const act = await activateEngineEnrollment(email, line.courseId)
         if (!act.ok) {

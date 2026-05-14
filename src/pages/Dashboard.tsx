@@ -6,9 +6,16 @@ import { useAuth } from '../context/AuthContext'
 import type { AvailableCourse, Certificate, CourseProgress, DashboardData, StudentProfile } from '../types/api'
 
 function progressPercent(c: CourseProgress): number {
+  const p = Number(c.progress)
+  if (!Number.isFinite(p)) return 0
+  return Math.min(100, Math.max(0, Math.round(p)))
+}
+
+function modulesCompletedEstimate(c: CourseProgress): number {
   const total = c.totalModules ?? 0
   if (total <= 0) return 0
-  return Math.min(100, Math.round((c.progress / total) * 100))
+  const pct = progressPercent(c)
+  return Math.round((pct / 100) * total)
 }
 
 export function Dashboard() {
@@ -83,7 +90,13 @@ export function Dashboard() {
     )
   }
 
-  const lessonStat = data.enrolledCourses.reduce((acc, c) => acc + (c.progress || 0), 0)
+  const lessonStat =
+    data.enrolledCourses.length === 0
+      ? 0
+      : Math.round(
+          data.enrolledCourses.reduce((acc, c) => acc + progressPercent(c), 0) /
+            data.enrolledCourses.length,
+        )
 
   return (
     <div className="duo-page duo-fade-in">
@@ -132,8 +145,8 @@ export function Dashboard() {
             ⏱
           </div>
           <div>
-            <div className="duo-stat-val">{lessonStat}</div>
-            <div className="duo-stat-lbl">Avance módulos</div>
+            <div className="duo-stat-val">{lessonStat}%</div>
+            <div className="duo-stat-lbl">Progreso medio</div>
           </div>
         </div>
         <div className="duo-stat-card">
@@ -176,8 +189,8 @@ export function Dashboard() {
                     borderColor: pct > 0 ? '#a7f3d0' : '#f1f5f9',
                   }}
                 >
-                  <div className={`duo-ring-inner${c.completed ? ' done' : ''}`} aria-hidden>
-                    {c.completed ? '✓' : '📖'}
+                  <div className={`duo-ring-inner${c.completed || pct >= 100 ? ' done' : ''}`} aria-hidden>
+                    {c.completed || pct >= 100 ? '✓' : '📖'}
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -190,8 +203,14 @@ export function Dashboard() {
                     <div className="duo-progress-bar" style={{ width: `${pct}%` }} />
                   </div>
                   <p className="duo-muted small" style={{ marginTop: '0.5rem' }}>
-                    Módulos: {c.progress}/{c.totalModules}
-                    {c.completed ? (
+                    Avance: <strong>{pct}%</strong>
+                    {c.totalModules != null && c.totalModules > 0 ? (
+                      <>
+                        {' '}
+                        · ~{modulesCompletedEstimate(c)}/{c.totalModules} módulos
+                      </>
+                    ) : null}
+                    {c.completed || pct >= 100 ? (
                       <span style={{ color: '#059669', fontWeight: 800, marginLeft: '0.5rem' }}>
                         Completado
                       </span>
@@ -215,8 +234,8 @@ export function Dashboard() {
                   </div>
                   {progressMap[c.courseId] ? (
                     <p className="duo-muted small mono" style={{ marginTop: '0.5rem' }}>
-                      API: {progressMap[c.courseId]?.progress}/{progressMap[c.courseId]?.totalModules}{' '}
-                      módulos
+                      API: {progressPercent(progressMap[c.courseId]!)}% ·{' '}
+                      {progressMap[c.courseId]?.totalModules ?? 0} módulos en el curso
                     </p>
                   ) : null}
                 </div>

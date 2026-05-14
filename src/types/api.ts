@@ -7,6 +7,7 @@ export type ApiResponse<T> = {
 export type CourseProgress = {
   courseId: string
   courseName: string
+  /** Porcentaje 0–100 guardado en learning-students (no es “módulos completados”). */
   progress: number
   totalModules: number
   completed: boolean

@@ -1,8 +1,20 @@
 import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import { useMyEngineEnrollments } from '../hooks/useMyEngineEnrollments'
 
 export function Cart() {
+  const { email } = useAuth()
   const { items, removeItem, total, clear } = useCart()
+  const { activeCourseIds, loading: enrollLoading } = useMyEngineEnrollments(email)
+
+  useEffect(() => {
+    if (enrollLoading || activeCourseIds.size === 0) return
+    for (const i of items) {
+      if (activeCourseIds.has(i.courseId)) removeItem(i.courseId)
+    }
+  }, [enrollLoading, activeCourseIds, items, removeItem])
 
   return (
     <div className="duo-page duo-fade-in">

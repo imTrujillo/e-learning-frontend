@@ -2,7 +2,10 @@ import { ENGINE_API_BASE } from '../config'
 import type {
   EngineCategory,
   EngineCourse,
+  EngineEnrollment,
   EngineErrorBody,
+  EngineLessonProgressResponse,
+  EngineModule,
   EnginePaged,
   LearningEngineResponse,
 } from '../types/engine'
@@ -87,6 +90,52 @@ export async function fetchEngineCourses(
   const q = new URLSearchParams({ page: String(page), size: String(size) })
   if (categorySlug) q.set('category', categorySlug)
   return engineRequest<EnginePaged<EngineCourse>>(`/courses?${q.toString()}`)
+}
+
+export async function fetchEngineCourse(courseId: number): Promise<EngineResult<EngineCourse>> {
+  return engineRequest<EngineCourse>(`/courses/${courseId}`)
+}
+
+/**
+ * Módulos y lecciones del curso. `studentEmail` opcional: sin email solo vista pública (previews);
+ * con email el motor marca acceso según inscripción ACTIVA.
+ */
+export async function fetchEngineCourseModules(
+  courseId: number,
+  studentEmail?: string | null,
+): Promise<EngineResult<EngineModule[]>> {
+  const q = new URLSearchParams()
+  if (studentEmail?.trim()) q.set('studentEmail', studentEmail.trim())
+  const suffix = q.toString() ? `?${q.toString()}` : ''
+  return engineRequest<EngineModule[]>(`/courses/${courseId}/modules${suffix}`)
+}
+
+export async function fetchEngineMyCourses(
+  studentEmail: string,
+): Promise<EngineResult<EngineEnrollment[]>> {
+  const q = new URLSearchParams({ studentEmail })
+  return engineRequest<EngineEnrollment[]>(`/my-courses?${q.toString()}`)
+}
+
+export async function fetchEngineEnrollmentVerify(
+  studentEmail: string,
+  courseId: number,
+): Promise<EngineResult<boolean>> {
+  const q = new URLSearchParams({ studentEmail, courseId: String(courseId) })
+  return engineRequest<boolean>(`/enrollments/verify?${q.toString()}`)
+}
+
+/** Marca lección completada (requiere inscripción activa en el motor). */
+export async function completeEngineLesson(
+  moduleId: number,
+  lessonId: number,
+  studentEmail: string,
+): Promise<EngineResult<EngineLessonProgressResponse>> {
+  const q = new URLSearchParams({ studentEmail: studentEmail.trim() })
+  return engineRequest<EngineLessonProgressResponse>(
+    `/modules/${moduleId}/lessons/${lessonId}/complete?${q.toString()}`,
+    { method: 'POST' },
+  )
 }
 
 export async function fetchEngineCategories(

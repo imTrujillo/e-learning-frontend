@@ -174,8 +174,9 @@ export function Forum() {
 
       <form className="card forum-compose" onSubmit={sendRest}>
         <label>
-          Mensaje (REST — queda guardado; el tiempo real vía WS lo usa otro cliente)
-          <textarea
+          <p>Mensaje (REST — queda guardado; el tiempo real vía WS lo usa otro cliente)</p>
+          <textarea 
+          className='duo-input duo-input-textarea'
             rows={3}
             value={content}
             onChange={(e) => setContent(e.target.value)}

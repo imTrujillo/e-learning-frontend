@@ -1,5 +1,5 @@
 import { API_BASE } from '../config'
-import type { ApiResponse } from '../types/api'
+import type { ApiResponse, Certificate } from '../types/api'
 
 const ACCESS_KEY = 'ss_access_token'
 const REFRESH_KEY = 'ss_refresh_token'
@@ -164,6 +164,23 @@ export function toStoredPicturePath(path: string | null | undefined): string | u
   }
   if (!p.startsWith('/')) p = `/${p}`
   return p.replace(/\/{2,}/g, '/')
+}
+
+export async function fetchStudentCertificates(studentEmail: string): Promise<Certificate[]> {
+  const token = getStoredAccessToken()
+  const res = await fetch(
+    `${API_BASE}/api/certificates/${encodeURIComponent(studentEmail)}`,
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    },
+  )
+  if (!res.ok) return []
+  try {
+    const data = (await res.json()) as unknown
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
 }
 
 export async function downloadCertificatePdf(certificateId: string): Promise<void> {

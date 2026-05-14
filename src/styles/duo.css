@@ -375,15 +375,23 @@
 
 .duo-btn-rose {
   background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
-  color: #fff;
+  color: #fff !important;
   border-color: #f43f5e;
   border-bottom-color: #9f1239;
 }
+.duo-btn-rose:hover {
+  background: linear-gradient(180deg, #f3526d 0%, #e22a52 100%) !important;
+  color: #fff;
+}
 .duo-btn-sky {
   background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 100%);
-  color: #fff;
+  color: #fff !important;
   border-color: #38bdf8;
   border-bottom-color: #0369a1;
+}
+.duo-btn-sky:hover {
+  background: linear-gradient(180deg, #37aef9 0%, #0a94d6 100%) !important;
+  color: #fff;
 }
 .duo-btn-ghost {
   background: #fff;
@@ -497,7 +505,7 @@
 .duo-course-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   font-size: 0.75rem;
 }
 .duo-chip {
@@ -505,18 +513,6 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #f43f5e;
-}
-.duo-rating {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-weight: 800;
-  color: #64748b;
-  background: #f1f5f9;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.5rem;
-  border-bottom: 2px solid #e2e8f0;
-  font-size: 0.72rem;
 }
 
 .duo-course-title {
@@ -1082,4 +1078,220 @@
 
 .duo-profile-banners .duo-banner {
   margin-bottom: 0;
+}
+
+/* Ficha de curso: programa, candados, CTA */
+.duo-course-detail-nav {
+  margin-bottom: 1rem;
+}
+
+.duo-course-detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.duo-course-detail-aside {
+  min-width: min(100%, 220px);
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.duo-access-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.9rem;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.duo-access-badge a {
+  color: #0284c7;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.duo-access-badge a:hover {
+  text-decoration: underline;
+}
+
+.duo-access-badge-ok {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+
+.duo-access-badge-warn {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+
+.duo-course-detail-buy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.duo-catalog-purchase-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.duo-curriculum {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.duo-module-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #e2e8f0;
+  border-radius: 1.25rem;
+  padding: 1rem 1.15rem 1.15rem;
+  border-bottom-width: 5px;
+  border-bottom-color: #cbd5e1;
+}
+
+.duo-module-title {
+  margin: 0 0 0.65rem;
+  font-family: var(--duo-font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.duo-lesson-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.duo-lesson-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.85rem;
+  border: 2px solid #f1f5f9;
+  background: #fafafa;
+}
+
+.duo-lesson-row.unlocked {
+  border-color: #bae6fd;
+  background: #f8fafc;
+}
+
+.duo-lesson-row.locked {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  opacity: 0.96;
+}
+
+.duo-lesson-meta {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  flex-shrink: 0;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.duo-lesson-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.duo-lesson-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.duo-lesson-gate {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.duo-yt-embed-wrap {
+  margin-top: 0.65rem;
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 16 / 9;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  border: 2px solid #bae6fd;
+  background: #0f172a;
+}
+
+.duo-yt-embed-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.duo-cert-card {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.35rem 1.35rem;
+  border-radius: 1.25rem;
+  border: 2px solid #6ee7b7;
+  border-bottom-width: 5px;
+  border-bottom-color: #059669;
+  background: linear-gradient(165deg, #ecfdf5 0%, #d1fae5 100%);
+}
+
+.duo-cert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.duo-lesson-done-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.65rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #047857;
+  background: #ecfdf5;
+  border: 2px solid #6ee7b7;
+}
+
+.duo-course-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.duo-course-title a:hover {
+  color: #e11d48;
 }
