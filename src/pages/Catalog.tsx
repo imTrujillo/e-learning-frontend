@@ -3,9 +3,13 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useMyEngineEnrollments } from '../hooks/useMyEngineEnrollments'
+import { EnginePagination } from '../components/EnginePagination'
 import { fetchEngineCategories, fetchEngineCourses } from '../lib/engineApi'
 import { enrollmentForCourse, resolveCoursePurchaseAction } from '../lib/engineEnrollmentUi'
 import type { EngineCategory, EngineCourse } from '../types/engine'
+
+const COURSE_PAGE_SIZE = 12
+const CATEGORY_PAGE_SIZE = 100
 
 function priceOf(c: EngineCourse): number {
   const p = c.price
@@ -25,38 +29,56 @@ export function Catalog() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [categorySlug, setCategorySlug] = useState('')
-
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalItems, setTotalItems] = useState(0)
   const loadCategories = useCallback(async () => {
     setCatError('')
-    const res = await fetchEngineCategories(0, 80)
-    if (!res.ok) {
-      setCategories([])
-      setCatError(
-        'Las categorías no están disponibles. Puedes seguir explorando todo el catálogo desde el motor.',
-      )
-      return
+    const all: EngineCategory[] = []
+    let p = 0
+    let pages = 1
+    while (p < pages) {
+      const res = await fetchEngineCategories(p, CATEGORY_PAGE_SIZE)
+      if (!res.ok) {
+        setCategories([])
+        setCatError(
+          'Las categorías no están disponibles. Puedes seguir explorando todo el catálogo desde el motor.',
+        )
+        return
+      }
+      all.push(...(res.data.content ?? []))
+      pages = res.data.totalPages ?? 1
+      p += 1
     }
-    setCategories(res.data.content ?? [])
+    setCategories(all)
   }, [])
 
-  const loadCourses = useCallback(async () => {
+  const loadCourses = useCallback(async (pageIndex: number, slug: string) => {
     setLoading(true)
-    const res = await fetchEngineCourses(0, 60, categorySlug || undefined)
+    const res = await fetchEngineCourses(pageIndex, COURSE_PAGE_SIZE, slug || undefined)
     if (!res.ok) {
       setCourses([])
+      setTotalPages(0)
+      setTotalItems(0)
     } else {
       setCourses(res.data.content ?? [])
+      setTotalPages(res.data.totalPages ?? 0)
+      setTotalItems(res.data.totalItems ?? 0)
     }
     setLoading(false)
-  }, [categorySlug])
+  }, [])
 
   useEffect(() => {
     void loadCategories()
   }, [loadCategories])
 
   useEffect(() => {
-    void loadCourses()
-  }, [loadCourses])
+    setPage(0)
+  }, [categorySlug])
+
+  useEffect(() => {
+    void loadCourses(page, categorySlug)
+  }, [loadCourses, page, categorySlug])
 
   const filtered = useMemo(() => {
     const t = search.trim().toLowerCase()
@@ -198,6 +220,12 @@ export function Catalog() {
         </select>
       </div>
 
+      {search.trim() ? (
+        <p className="duo-muted small" style={{ marginBottom: '0.75rem' }}>
+          La búsqueda filtra los cursos de esta página ({courses.length} en pantalla).
+        </p>
+      ) : null}
+
       {loading ? (
         <div className="duo-loading">
           <div className="duo-spinner" />
@@ -207,6 +235,7 @@ export function Catalog() {
           <p>No se encontraron cursos. ¿Está learning-engine en marcha con datos?</p>
         </div>
       ) : (
+        <>
         <div className="duo-course-grid">
           {filtered.map((course) => {
             const price = priceOf(course)
@@ -245,7 +274,17 @@ export function Catalog() {
             )
           })}
         </div>
+        <EnginePagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={COURSE_PAGE_SIZE}
+          disabled={loading}
+          onPageChange={setPage}
+        />
+        </>
       )}
+
     </div>
   )
 }

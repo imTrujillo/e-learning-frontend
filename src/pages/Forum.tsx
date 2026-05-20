@@ -10,6 +10,7 @@ import {
   type KeyboardEvent,
 } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { EnginePagination } from '../components/EnginePagination'
 import { API_BASE, WS_BASE } from '../config'
 import { apiRequest, getStoredAccessToken } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
@@ -51,6 +52,10 @@ export function Forum() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
   const [sending, setSending] = useState(false)
+  const [forumPage, setForumPage] = useState(0)
+  const [forumTotalPages, setForumTotalPages] = useState(0)
+  const [forumTotalElements, setForumTotalElements] = useState(0)
+  const FORUM_PAGE_SIZE = 30
   const clientRef = useRef<Client | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
@@ -64,18 +69,25 @@ export function Forum() {
     [email, profile?.email],
   )
 
-  const loadHistory = useCallback(async () => {
+  const loadHistory = useCallback(async (pageIndex: number) => {
     if (!courseId) return
     setError(null)
     try {
       const token = getStoredAccessToken()
+      const q = new URLSearchParams({
+        page: String(pageIndex),
+        size: String(FORUM_PAGE_SIZE),
+      })
       const res = await fetch(
-        `${API_BASE}/api/courses/${encodeURIComponent(courseId)}/forum?page=0&size=100`,
+        `${API_BASE}/api/courses/${encodeURIComponent(courseId)}/forum?${q}`,
         { headers: token ? { Authorization: `Bearer ${token}` } : {} },
       )
       if (!res.ok) throw new Error('No se pudo cargar el foro')
       const page = (await res.json()) as SpringPage<ForumMessage>
       setMessages(page.content ?? [])
+      setForumPage(page.number ?? pageIndex)
+      setForumTotalPages(page.totalPages ?? 0)
+      setForumTotalElements(page.totalElements ?? 0)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar mensajes')
     }
@@ -97,8 +109,12 @@ export function Forum() {
   }, [])
 
   useEffect(() => {
-    void loadHistory()
-  }, [loadHistory])
+    setForumPage(0)
+  }, [courseId])
+
+  useEffect(() => {
+    void loadHistory(forumPage)
+  }, [loadHistory, forumPage, courseId])
 
   useEffect(() => {
     if (!courseId) return
@@ -475,6 +491,16 @@ export function Forum() {
           )
         })}
         <div ref={bottomRef} />
+      </div>
+
+      <div style={{ padding: '8px 12px', background: '#fff' }}>
+        <EnginePagination
+          page={forumPage}
+          totalPages={forumTotalPages}
+          totalItems={forumTotalElements}
+          pageSize={FORUM_PAGE_SIZE}
+          onPageChange={setForumPage}
+        />
       </div>
 
       <form
